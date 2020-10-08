@@ -6,9 +6,6 @@ export default function useGAuth(setLoading) {
     const [user, setUser] = useState(null);
     const [events, setEvents] = useState([]);
 
-    // TODO : make Stfan an admin account so he can add item (grant scope)
-    const [admin, setAdmin] = useState(false);
-
     // get the minimum date from which events should be shown
     const getMinDate = () => {
         const today = new Date();
