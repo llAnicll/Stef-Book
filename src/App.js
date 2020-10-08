@@ -7,7 +7,6 @@ import Booking from 'components/Booking'
 import ConfirmDialog from 'components/ConfirmDialog';
 import useGAuth from 'hooks/useGAuth';
 
-// TODO : When done other todo's then add the create clinic functiom
 function App() {
   const [loadingItems, setLoadingItems] = useState(false);
   const {user, events} = useGAuth(setLoadingItems);
