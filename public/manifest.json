@@ -1,0 +1,9 @@
+{
+  "short_name": "Volleyball YYC",
+  "name": "Volleyball YYC - Stefan Filip",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
