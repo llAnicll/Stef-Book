@@ -7,17 +7,9 @@
 - Allow users the ability to join upcoming clinics/events
 
 ### What did I use?
-- Google Auth api
-- Google Calendar events api
-- Material UI (MUI)
-
-### Basic user permissions/Scopes
-- Read 
-- Update
-
-### Admin user persmision/Scopes
-- Create 
-- Delete
+- Google Auth
+- Google Calendar
+- Material UI
 
 ---
 
