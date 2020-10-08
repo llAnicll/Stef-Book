@@ -61,7 +61,6 @@ export default function Nav(props) {
     setOpen(prevState => !prevState);
   };
 
-  // TODO: make the create button available to only users with granded scope
   return (
     <Box component='div' className={classes.root}>
       <CssBaseline />
@@ -82,6 +81,8 @@ export default function Nav(props) {
     </Box>
   );
 }
+
+// should be moved
 
 function LogoButton() {
   const classes = useStyles();

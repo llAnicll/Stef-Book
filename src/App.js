@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import Nav from 'components/Nav'
 import Header from 'components/Header'
 import About from 'components/About'
@@ -13,14 +13,12 @@ function App() {
   const [dialogState, setDialogState] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   
-
   // toggle the dialog state
   const toggleDialogState = item => {
     setSelectedItem(item);
     setDialogState(prevState => !prevState)
   }
 
-  // TODO : When making the "create new clinic" dialog then you should make it a full screen dialog
   return (
     <div>
       <Nav user={user}>

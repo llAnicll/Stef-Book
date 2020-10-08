@@ -15,7 +15,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-// TODO : make sure that you (Cailan) add the reference links for the icons
 export default function Footer() {
   const classes = useStyles();
   return (

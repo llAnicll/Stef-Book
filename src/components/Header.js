@@ -1,11 +1,10 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Container, Box, Typography, Button, Hidden, SvgIcon} from '@material-ui/core';
-import clinic from 'assets/icons/clinic.png';
-import smallGroup from 'assets/icons/smallGroup.png';
+import clinic from 'assets/icons/clinic.png'; // alt
+import smallGroup from 'assets/icons/smallGroup.png'; // alt
 import background from 'assets/images/background.jpg';
-import privateSession from 'assets/icons/privateSession.png';
-//
+import privateSession from 'assets/icons/privateSession.png'; // alt
 import PersonIcon from '@material-ui/icons/Person';
 import GroupIcon from '@material-ui/icons/Group';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';

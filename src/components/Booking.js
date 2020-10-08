@@ -66,6 +66,7 @@ export default function Booking(props) {
     const [filteredEvents, setFilteredEvents] = useState([]);
     const [loadingMessage, setLoadingMessage] = useState(null);
 
+    // yes I know this could be better...
     const requestSession = e => {
         e.preventDefault();
         const to = 'mailto:Cailanlay@gmail.com';
