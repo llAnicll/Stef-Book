@@ -1,19 +1,20 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Container, Box, Typography, Button, Hidden, SvgIcon} from '@material-ui/core';
-import clinic from 'assets/icons/clinic.png'; // alt
-import smallGroup from 'assets/icons/smallGroup.png'; // alt
-import background from 'assets/images/background.jpg';
-import privateSession from 'assets/icons/privateSession.png'; // alt
+import {Zoom} from '@material-ui/core'
+// import clinic from 'assets/icons/clinic.png'; // alt
+// import smallGroup from 'assets/icons/smallGroup.png'; // alt
+// import privateSession from 'assets/icons/privateSession.png'; // alt
 import PersonIcon from '@material-ui/icons/Person';
 import GroupIcon from '@material-ui/icons/Group';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
+import backgroundMin from 'assets/images/backgroundMin.jpg';
 
 const useStyles = makeStyles(theme => ({
   background: {
     height: '100%',
     width: '100%',
-    backgroundImage: `url(${background})`,
+    backgroundImage: `url(${backgroundMin})`,
     backgroundSize: 'cover',
     backgroundPosition: '50% 10%',
     backgroundRepeat: 'no-repeat',
@@ -28,7 +29,7 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'column',
     justifyContent: 'center',
     alignContent: 'center',
-    height: 'calc(100vh - 64px)',
+    height: 'calc(100vh - 55px)',
   },
   headerText: {
     fontWeight: 600,
@@ -114,46 +115,54 @@ export default function Header(props) {
     <Box className={classes.background}>
       <Box className={classes.filter}>
         <Container component='section' className={classes.header}>
-          <Typography variant='h1' component='h1' align='center' className={classes.headerText}>
-            Volleyball Skills Training
-          </Typography>
+          <Zoom in={true} timeout={800}>
+            <Typography variant='h1' component='h1' align='center' className={classes.headerText}>
+              Volleyball Skills Training
+            </Typography>
+          </Zoom>
           <Hidden smDown implementation='css' >
-          <Box component='div' className={classes.itemsContainer}>
-            {items.map((item, index) => (
-              <Box key={index} variant='outlined' className={classes.item}>
-                <SvgIcon component={item.icon} color='primary' className={classes.svgIcon}/>
-                
-                <Typography
-                  variant='h3'
-                  component='h3'
-                  align='center'
-                  className={classes.iconHeader}
-                >
-                  {item.header}
-                </Typography>
-                <Hidden smDown implementation='css'>
-                  <Typography
-                    variant='body1'
-                    component='p'
-                    align='center'
-                    className={classes.iconText}
-                  >
-                    {item.text}
-                  </Typography>
-                </Hidden>
-              </Box>
-            ))}
-          </Box>
+
+            <Box component='div' className={classes.itemsContainer}>
+              {items.map((item, index) => (
+                <Zoom key={index} in={true} timeout={parseInt(`${(index+8)}00`)}>
+                  <Box variant='outlined' className={classes.item}>
+                    <SvgIcon component={item.icon} color='primary' className={classes.svgIcon}/>
+                    
+                    <Typography
+                      variant='h3'
+                      component='h3'
+                      align='center'
+                      className={classes.iconHeader}
+                    >
+                      {item.header}
+                    </Typography>
+                    <Hidden smDown implementation='css'>
+                      <Typography
+                        variant='body1'
+                        component='p'
+                        align='center'
+                        className={classes.iconText}
+                      >
+                        {item.text}
+                      </Typography>
+                    </Hidden>
+                  </Box>
+                </Zoom>
+              ))}
+            </Box>
+
           </Hidden>
-          <Button
-            variant='outlined'
-            size='large'
-            color='primary'
-            className={classes.button}
-            onClick={openBooking}
-          >
-            Book Now
-          </Button>
+          <Zoom in={true} timeout={1000}>
+            <Button
+              variant='contained'
+              size='large'
+              color='secondary'
+              className={classes.button}
+              onClick={openBooking}
+            >
+              Book Now
+            </Button>
+          </Zoom>
         </Container>
       </Box>
     </Box>

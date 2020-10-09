@@ -1,17 +1,17 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Container, Grid, Box, Paper, Typography, SvgIcon } from '@material-ui/core';
+import { Container, Grid, Paper, Typography, SvgIcon } from '@material-ui/core';
 // Other (credit in footer)
-import graph from 'assets/icons/graph.png';
-import coach from 'assets/icons/coach.png';
-import player from 'assets/icons/player.png';
-import certificate from 'assets/icons/certificate.png';
-import stefImg from 'assets/images/stefImg.jpg';
+// import graph from 'assets/icons/graph.png';
+// import coach from 'assets/icons/coach.png';
+// import player from 'assets/icons/player.png';
+// import certificate from 'assets/icons/certificate.png';
 // MUI Icons
 import BeenhereOutlinedIcon from '@material-ui/icons/BeenhereOutlined';
 import SportsVolleyballOutlinedIcon from '@material-ui/icons/SportsVolleyballOutlined';
 import TrendingUpOutlinedIcon from '@material-ui/icons/TrendingUpOutlined';
 import Filter9PlusOutlinedIcon from '@material-ui/icons/Filter9PlusOutlined';
+import stefImgMin from 'assets/images/stefImgMin.jpg'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -108,7 +108,7 @@ export default function About() {
       >
 
         <Grid item xs={12} sm={12} md={5} className={classes.imgItem}>
-          <img className={classes.image} src={stefImg} alt='image'></img>
+          <img className={classes.image} src={stefImgMin} alt='item visual'></img>
         </Grid>
 
         <Grid item xs={12} sm={12} md={7}>

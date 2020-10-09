@@ -1,7 +1,9 @@
 import React, {useState, useEffect} from 'react'
+import firebase from 'fbConfig'
 import {makeStyles} from '@material-ui/core/styles'
-import {Container, Grid, Box, Typography, Paper, ButtonBase, Collapse, Button, Divider, IconButton, CircularProgress } from '@material-ui/core'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import {Container, Grid, Box, Typography, Paper, ButtonBase, Collapse, IconButton, CircularProgress, Zoom} from '@material-ui/core'
+import SessionRequestButton from 'components/booking components/SessionRequestButton'
 
 const useStyles = makeStyles(theme => ({
     background: {
@@ -49,106 +51,151 @@ const useStyles = makeStyles(theme => ({
         transform: 'rotate(180deg)',
     },
     centerItem: {
-        marginTop: theme.spacing(4),
         width: '100%',
         display: 'flex',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        marginTop: theme.spacing(4),
+        marginBottom: theme.spacing(4),
     },
-    sessionButton: {
-        marginBottom: theme.spacing(5)
+    itemWithDelete: {
+        width: '100%',
+        display: 'flex',
+    },
+    deleteIconButton: {
+        padding: theme.spacing(1),
+    },
+    itemTitle: {
+        justifySelf: 'flex-start',
+        flexGrow: 1
     }
 }))
 
 export default function Booking(props) {
-    const {events, user, toggleDialog, loadingItems, setLoadingItems} = props
+    const {user, toggleDialog} = props
     const classes = useStyles();
+    const [events, setEvents] = useState([])
     const [expanded, setExpanded] = useState(false);
-    const [filteredEvents, setFilteredEvents] = useState([]);
-    const [loadingMessage, setLoadingMessage] = useState(null);
-
-    // yes I know this could be better...
-    const requestSession = e => {
-        e.preventDefault();
-        const to = 'mailto:Cailanlay@gmail.com';
-        const subject = `?subject=Volleyball%20YYC%20Private%20Session%20Request`;
-        const body = `&body=From:%20${user.getName()}%0AEmail:%20${user.getEmail()}%0A%0AHi%20Stefan,%0AMy%20name%20is%20${user.getName()},%20and%20I%20am%20looking%20to%20book%20a%20private%20session%0A`;
-        const url = to + subject + body
-        window.open(url, '_blank');
-    }
+    const [fetched, setFetched] = useState(false);
 
     // toggle more events view
     const toggleExpand = () => {
         setExpanded(prevState => !prevState)
     }
 
-    // filter events on events change
+    // get the minimum date from which events should be shown
+    const getMinDate = () => {
+        const today = new Date();
+        const date = today.getDate();
+        var tomorrow = new Date().setDate(date+1);
+        tomorrow = new Date(tomorrow).setHours(0,0,0)
+        return tomorrow;
+    }
+
+    // get the events
     useEffect(() => {
-        const newList = events.filter(item => {
-            if(item.hasOwnProperty('attendees')) {
-                const maxAttendees = item.description.split('/', 2)[1];
-                if(item.attendees.length < parseInt(maxAttendees)) {
-                    return item;
-                }
+        const nextDay= getMinDate();
+        const eventsRef = firebase.firestore().collection('events');
+        const queary = eventsRef.where('start', '>', new Date(nextDay));
+        queary.get().then(res => {
+            if(res.docs.length > 0) {
+                const eventsList = res.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }))
+                setEvents(eventsList);
+                setFetched(true);
             } else {
-                return item;
+                setEvents(null);
+                setFetched(true);
             }
         })
-        if(!newList.length > 0) {
-            setLoadingMessage('Looks like there are no upcoming events')
-        } else {
-            setLoadingMessage(null)
-        }
-        setLoadingItems(false);
-        setFilteredEvents(newList)
-    },[events])
+    },[])
 
-    // get items that should be used
+    useEffect(() => {
+        if(fetched) {
+            if(events !== null) {
+                const newList = events.filter(item => {
+                    if(item.currentAttendees < item.maxAttendees) {
+                        return item;
+                    }
+                })
+                if(newList.length > 0) {
+                    setEvents(newList);
+                } else {
+                    setEvents(null)
+                }
+            }
+        }
+    },[fetched])
+
+
+    // get items that should be used per section 
     const getMapableItems = (start, stopCondition) => {
         var newList = [];
-        if(filteredEvents.length < stopCondition) {
+        if(events.length < stopCondition) {
             // ensures that the stop condition will not add 'undefined' to an index
-            stopCondition = filteredEvents.length;
+            stopCondition = events.length;
         }
-        if(stopCondition > 0 && filteredEvents.length > 0){
+        if(stopCondition > 0 && events.length > 0){
             for(var i = start; i < stopCondition; i++) {
-                newList.push(filteredEvents[i])
+                newList.push(events[i])
             }
+        } else  {
+            console.log('no items')
         }
         return newList;
     }
 
-    const sessionButton = (
-        <div className={classes.centerItem}>
-            <Button variant='contained' color='secondary' className={classes.sessionButton} onClick={requestSession}>Request a Session</Button>
-        </div>
-    ) 
-
-    if(loadingItems || loadingMessage !== null) {
+    // if no events
+    if(events === null) {
         return (
             <Box className={classes.background}>
-            <Container id='booking' className={classes.container}>
-                <Typography variant='h2' component='h2' align='center' gutterBottom>
-                    Upcoming Events
-                </Typography>
-                {sessionButton}
-                {loadingItems 
-                    ? <div className={classes.centerItem}><CircularProgress color='secondary'/></div>
-                    : <Typography variant='h6' align='center'>{loadingMessage}</Typography>
-                }
-                
-            </Container>
+                <Container id='booking' className={classes.container}>
+                    <Typography variant='h2' component='h2' align='center' gutterBottom>
+                        Upcoming Events
+                    </Typography>
+                    <div className={classes.centerItem}>
+                        <SessionRequestButton user={user} />
+                    </div>
+                    <Typography variant='h6' align='center'>Looks like there are no upcoming events</Typography>
+                </Container>
+            </Box>
+        );
+    }
+
+    // if still getting events
+    if(!events.length > 0) {
+        return (
+            <Box className={classes.background}>
+                <Container id='booking' className={classes.container}>
+
+                    <Typography variant='h2' component='h2' align='center' gutterBottom>
+                        Upcoming Events
+                    </Typography>
+
+                    <div className={classes.centerItem}>
+                        <SessionRequestButton user={user} />
+                    </div>
+
+                    <div className={classes.centerItem}><CircularProgress color='secondary'/></div>
+
+                </Container>
             </Box>
         );
     }
 
     return (
         <Box className={classes.background}>
-        <Container id='booking' className={classes.container}>
-            <Typography variant='h2' component='h2' align='center' gutterBottom>
-                Upcoming Events
-            </Typography> 
-            {sessionButton}
-            {events.length > 0 && (
+            <Container id='booking' className={classes.container}>
+
+                <Typography variant='h2' component='h2' align='center' gutterBottom>
+                    Upcoming Events
+                </Typography> 
+
+                <div className={classes.centerItem}>
+                    <SessionRequestButton user={user} />
+                </div>
+
                 <Grid
                     container
                     direction="row"
@@ -159,63 +206,71 @@ export default function Booking(props) {
                 >
                     {getMapableItems(0, 4).map((item, index) => {
 
-                        const date = new Date(item.start.dateTime).toLocaleDateString();
-                        const start = new Date(item.start.dateTime).toLocaleTimeString();
-                        const end = new Date(item.end.dateTime).toLocaleTimeString();
-
+                        const startDate = item.start.toDate().toLocaleDateString();
+                        const startTime = item.start.toDate().toLocaleTimeString();
+                        const endTime = item.end.toDate().toLocaleTimeString();
+                        
                         return (
-                            <Grid item key={index} xs={12} sm={12} md={6} lg={3}>
+                            <Zoom key={index} in={true} timeout={parseInt(`${index+9}00`)}>
+                            <Grid item  xs={12} sm={12} md={6} lg={3}>
                                 <Paper elevation={4} className={classes.paper}>
+                                
                                     <ButtonBase className={classes.buttonBase} onClick={() => toggleDialog(item)}>
-                                        <Typography variant='h5' gutterBottom>{item.summary}</Typography>
-                                        <Typography variant='body2'>{`${date} ⋅ ${start} - ${end}`}</Typography>
-                                        <Typography variant='body2'>{item.location}</Typography>
+                                        <Typography variant='h5' gutterBottom>{item.title}</Typography>
+                                        <Typography variant='body2'>{`Date: ${startDate}`}</Typography>
+                                        <Typography variant='body2'>{`${startTime} - ${endTime}`}</Typography>
+                                        <Typography variant='body2'>{`Location: ${item.location}`}</Typography>
                                     </ButtonBase>
                                 </Paper>
                             </Grid>
+                            </Zoom>
                         )
                         
                     })}
                 </Grid>
-            )} 
-            <Collapse in={expanded} timeout="auto" >
-                <Grid
-                    container
-                    direction="row"
-                    justify="flex-start"
-                    alignItems="center"
-                    spacing={3}
-                    className={classes.grid}
-                >
-                    {filteredEvents.length > 4 && getMapableItems(4, filteredEvents.length).map((item, index) => {
 
-                        const date = new Date(item.start.dateTime).toLocaleDateString();
-                        const start = new Date(item.start.dateTime).toLocaleTimeString();
-                        const end = new Date(item.end.dateTime).toLocaleTimeString();
-            
-                        return (
-                            <Grid item key={index} xs={12} sm={12} md={6} lg={3}>
-                                <Paper elevation={4}  className={classes.paper}>
-                                    <ButtonBase className={classes.buttonBase} onClick={() => toggleDialog(item)}>
-                                        <Typography variant='h5' gutterBottom>{item.summary}</Typography>
-                                        <Typography variant='body2'>{`${date} ⋅ ${start} - ${end}`}</Typography>
-                                        <Typography variant='body2'>{item.location}</Typography>
-                                    </ButtonBase>
-                                </Paper>
-                            </Grid>
-                        )
-
-                    })}
-                </Grid>
-            </Collapse>
-            <Box className={classes.buttonContainer}>
                 {events.length > 4 && (
-                    <IconButton onClick={toggleExpand} className={expanded ? `${classes.moreButton} ${classes.moreButtonOpen}` : classes.moreButton}>
-                        <ExpandMoreIcon/>
-                    </IconButton>
+                    <Collapse in={expanded} timeout="auto" >
+                        <Grid
+                        container
+                        direction="row"
+                        justify="flex-start"
+                        alignItems="center"
+                        spacing={3}
+                        className={classes.grid}
+                        >
+                            {getMapableItems(4, events.length).map((item, index) => {
+
+                                const startDate = item.start.toDate().toLocaleDateString();
+                                const startTime = item.start.toDate().toLocaleTimeString();
+                                const endTime = item.end.toDate().toLocaleTimeString();
+
+                                return (
+                                    <Grid item key={index} xs={12} sm={12} md={6} lg={3}>
+                                        <Paper elevation={4}  className={classes.paper}>
+                                            <ButtonBase className={classes.buttonBase} onClick={() => toggleDialog(item)}>
+                                                <Typography variant='h5' gutterBottom>{item.title}</Typography>
+                                                <Typography variant='body2'>{`${startDate} ${startTime} - ${endTime}`}</Typography>
+                                                <Typography variant='body2'>{`Location: ${item.location}`}</Typography>
+                                            </ButtonBase>
+                                        </Paper>
+                                    </Grid>
+                                )
+
+                            })}
+                        </Grid>
+                    </Collapse>
                 )}
-            </Box>
-        </Container>
+
+                {events.length > 4 && (
+                    <Box className={classes.buttonContainer}>
+                        <IconButton onClick={toggleExpand} className={expanded ? `${classes.moreButton} ${classes.moreButtonOpen}` : classes.moreButton}>
+                            <ExpandMoreIcon/>
+                        </IconButton>
+                    </Box>
+                )}
+
+            </Container>
         </Box>
     )
 }

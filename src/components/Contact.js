@@ -71,6 +71,7 @@ export default function Contact() {
               type='text'
               variant='outlined'
               fullWidth
+              color='secondary'
               onChange={handleChange}
               InputLabelProps={{
                 shrink: true,
@@ -84,6 +85,7 @@ export default function Contact() {
               type='email'
               variant='outlined'
               fullWidth
+              color='secondary'
               onChange={handleChange}
               InputLabelProps={{
                 shrink: true,
@@ -99,6 +101,7 @@ export default function Contact() {
               rows={8}
               variant='outlined'
               fullWidth
+              color='secondary'
               onChange={handleChange}
               InputLabelProps={{
                 shrink: true,

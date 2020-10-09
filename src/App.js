@@ -1,33 +1,57 @@
-import React, {useState} from 'react';
-import Nav from 'components/Nav'
-import Header from 'components/Header'
-import About from 'components/About'
-import Contact from 'components/Contact'
-import Booking from 'components/Booking'
+import React, {useState, useEffect} from 'react';
+import Nav from 'components/Nav';
+import Header from 'components/Header';
+import About from 'components/About';
+import Contact from 'components/Contact';
+import Booking from 'components/Booking';
 import ConfirmDialog from 'components/ConfirmDialog';
-import useGAuth from 'hooks/useGAuth';
+import firebase from 'fbConfig';
+import CreateNewEventDialog from 'components/NewEventDialog';
 
 function App() {
-  const [loadingItems, setLoadingItems] = useState(false);
-  const {user, events} = useGAuth(setLoadingItems);
+  const [user , setUser] = useState(null);
   const [dialogState, setDialogState] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [createDialogState, setCreateDialogState] = useState(false);
+  const [admin, setAdmin] = useState(false);
   
   // toggle the dialog state
   const toggleDialogState = item => {
-    setSelectedItem(item);
+    setSelectedEvent(item);
     setDialogState(prevState => !prevState)
   }
+  
+  // toggle create dialog
+  const toggleCreateDialogState = () => {
+    setCreateDialogState(prevState => !prevState);
+  }
+
+  // listen for auth state change
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged(setUser);
+  },[])
+
+  // this is how you get the admin cliem
+  useEffect(() => {
+    if(user !== null) {
+      user.getIdTokenResult().then(idTokenResult => {
+        setAdmin(idTokenResult.claims.admin)
+      })
+    } else {
+      setAdmin(false);
+    }
+  },[user])
 
   return (
     <div>
-      <Nav user={user}>
+      <Nav user={user} admin={admin} toggleCreate={toggleCreateDialogState}>
         <Header/>
-        <Booking user={user} events={events} toggleDialog={toggleDialogState} loadingItems={loadingItems} setLoadingItems={setLoadingItems}/>
+        <Booking user={user} toggleDialog={toggleDialogState} />
         <About/>
         <Contact/>
       </Nav>
-      {selectedItem && <ConfirmDialog open={dialogState} toggle={toggleDialogState} item={selectedItem} user={user} />}
+      {selectedEvent && <ConfirmDialog open={dialogState} user={user} item={selectedEvent} toggle={toggleDialogState} admin={admin}/>}
+      {admin && <CreateNewEventDialog open={createDialogState} toggle={toggleCreateDialogState} />}
     </div>
   );
 }
