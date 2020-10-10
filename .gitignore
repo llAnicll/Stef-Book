@@ -21,7 +21,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # added
+/.firebase
 .env
+.eslintrc.json
 .firebaserc
 /firebase.json
 /src/assets

@@ -8,22 +8,24 @@ import ConfirmDialog from 'components/ConfirmDialog';
 import firebase from 'fbConfig';
 import CreateNewEventDialog from 'components/NewEventDialog';
 
+// Linting and hosting
+
 function App() {
   const [user, setUser] = useState(null);
-  const [dialogState, setDialogState] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [createDialogState, setCreateDialogState] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(false);
+  const [createDialog, setCreateDialog] = useState(false);
 
   // toggle the dialog state
-  const toggleDialogState = (item) => {
+  const toggleDialogState = item => {
     setSelectedEvent(item);
-    setDialogState((prevState) => !prevState);
+    setConfirmDialog(prevState => !prevState);
   };
 
   // toggle create dialog
-  const toggleCreateDialogState = () => {
-    setCreateDialogState((prevState) => !prevState);
+  const toggleCreateDialog = () => {
+    setCreateDialog(prevState => !prevState);
   };
 
   // listen for auth state change
@@ -34,7 +36,7 @@ function App() {
   // this is how you get the admin cliem
   useEffect(() => {
     if (user !== null) {
-      user.getIdTokenResult().then((idTokenResult) => {
+      user.getIdTokenResult().then(idTokenResult => {
         setAdmin(idTokenResult.claims.admin);
       });
     } else {
@@ -44,7 +46,7 @@ function App() {
 
   return (
     <div>
-      <Nav user={user} admin={admin} toggleCreate={toggleCreateDialogState}>
+      <Nav user={user} admin={admin} toggleCreate={toggleCreateDialog}>
         <Header />
         <Booking user={user} toggleDialog={toggleDialogState} />
         <About />
@@ -52,19 +54,14 @@ function App() {
       </Nav>
       {selectedEvent && (
         <ConfirmDialog
-          open={dialogState}
+          open={confirmDialog}
           user={user}
           item={selectedEvent}
           toggle={toggleDialogState}
           admin={admin}
         />
       )}
-      {admin && (
-        <CreateNewEventDialog
-          open={createDialogState}
-          toggle={toggleCreateDialogState}
-        />
-      )}
+      {admin && <CreateNewEventDialog open={createDialog} toggle={toggleCreateDialog} />}
     </div>
   );
 }

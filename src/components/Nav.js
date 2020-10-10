@@ -2,11 +2,17 @@ import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Box, AppBar, Toolbar, CssBaseline } from '@material-ui/core';
 import Footer from 'components/Footer';
-import LogoButton from 'components/nav components/LogoButton'
+import LogoButton from 'components/nav components/LogoButton';
 import HeaderText from 'components/nav components/HeaderText';
 import MenuButton from 'components/nav components/MenuButton';
 import HeaderLinks from 'components/nav components/HeaderLinks';
 import MobileDrawer from 'components/nav components/MobileDrawer';
+import HomeIcon from '@material-ui/icons/Home';
+import EventIcon from '@material-ui/icons/Event';
+import InfoIcon from '@material-ui/icons/Info';
+import EmailIcon from '@material-ui/icons/Email';
+import LockOpenIcon from '@material-ui/icons/LockOpen';
+import LockIcon from '@material-ui/icons/Lock';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -28,11 +34,11 @@ export default function Nav(props) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const links = [
-    { route: '#home', text: 'Home', auth: false },
-    { route: '#booking', text: 'Events', auth: false },
-    { route: '#about', text: 'About', auth: true },
-    { route: '#contact', text: 'Contact', auth: true },
-    { route: '#sign-in', text: 'Google sign-in', auth: true },
+    { route: '#home', text: 'Home', icon: HomeIcon },
+    { route: '#booking', text: 'Events', icon: EventIcon },
+    { route: '#about', text: 'About', icon: InfoIcon },
+    { route: '#contact', text: 'Contact', icon: EmailIcon },
+    { route: '#sign-in', text: 'Google sign-in', in: LockOpenIcon, out: LockIcon },
   ];
 
   const toggleDrawerState = () => {
@@ -44,13 +50,20 @@ export default function Nav(props) {
       <CssBaseline />
       <AppBar position='fixed' elevation={0} className={classes.appBar}>
         <Toolbar>
-          <LogoButton/>
-          <HeaderText/>
-          <MenuButton onClick={toggleDrawerState}/>
-          <HeaderLinks links={links} user={user} admin={admin} toggleCreate={toggleCreate}/>
+          <LogoButton />
+          <HeaderText />
+          <MenuButton onClick={toggleDrawerState} />
+          <HeaderLinks links={links} user={user} admin={admin} toggleCreate={toggleCreate} />
         </Toolbar>
       </AppBar>
-      <MobileDrawer open={open} links={links} user={user} toggleDrawer={toggleDrawerState} />
+      <MobileDrawer
+        open={open}
+        links={links}
+        user={user}
+        admin={admin}
+        toggleDrawer={toggleDrawerState}
+        toggleCreate={toggleCreate}
+      />
       <Box id='home' component='main' className={classes.content}>
         <div className={classes.toolbar} />
         {children}

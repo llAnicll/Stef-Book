@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Container, Box, Typography, Button, Hidden, SvgIcon} from '@material-ui/core';
-import {Zoom} from '@material-ui/core'
+import { Container, Box, Typography, Button, Hidden, SvgIcon } from '@material-ui/core';
+import { Zoom } from '@material-ui/core';
 // import clinic from 'assets/icons/clinic.png'; // alt
 // import smallGroup from 'assets/icons/smallGroup.png'; // alt
 // import privateSession from 'assets/icons/privateSession.png'; // alt
@@ -80,7 +80,7 @@ const useStyles = makeStyles(theme => ({
     fontSize: 90,
     margin: '0 auto',
     marginBottom: theme.spacing(1),
-  }
+  },
 }));
 
 export default function Header(props) {
@@ -108,8 +108,8 @@ export default function Header(props) {
   ];
 
   const openBooking = () => {
-    window.location.href = "#booking";
-  }
+    window.location.href = '#booking';
+  };
 
   return (
     <Box className={classes.background}>
@@ -120,14 +120,13 @@ export default function Header(props) {
               Volleyball Skills Training
             </Typography>
           </Zoom>
-          <Hidden smDown implementation='css' >
-
+          <Hidden smDown implementation='css'>
             <Box component='div' className={classes.itemsContainer}>
               {items.map((item, index) => (
-                <Zoom key={index} in={true} timeout={parseInt(`${(index+8)}00`)}>
+                <Zoom key={index} in={true} timeout={parseInt(`${index + 8}00`)}>
                   <Box variant='outlined' className={classes.item}>
-                    <SvgIcon component={item.icon} color='primary' className={classes.svgIcon}/>
-                    
+                    <SvgIcon component={item.icon} color='primary' className={classes.svgIcon} />
+
                     <Typography
                       variant='h3'
                       component='h3'
@@ -150,7 +149,6 @@ export default function Header(props) {
                 </Zoom>
               ))}
             </Box>
-
           </Hidden>
           <Zoom in={true} timeout={1000}>
             <Button
@@ -160,7 +158,7 @@ export default function Header(props) {
               className={classes.button}
               onClick={openBooking}
             >
-              Book Now
+              View Events
             </Button>
           </Zoom>
         </Container>
