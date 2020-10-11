@@ -30,7 +30,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function Nav(props) {
-  const { children, user, admin, toggleCreate } = props;
+  const { children, user } = props;
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const links = [
@@ -53,17 +53,10 @@ export default function Nav(props) {
           <LogoButton />
           <HeaderText />
           <MenuButton onClick={toggleDrawerState} />
-          <HeaderLinks links={links} user={user} admin={admin} toggleCreate={toggleCreate} />
+          <HeaderLinks links={links} user={user} />
         </Toolbar>
       </AppBar>
-      <MobileDrawer
-        open={open}
-        links={links}
-        user={user}
-        admin={admin}
-        toggleDrawer={toggleDrawerState}
-        toggleCreate={toggleCreate}
-      />
+      <MobileDrawer open={open} links={links} user={user} toggleDrawer={toggleDrawerState} />
       <Box id='home' component='main' className={classes.content}>
         <div className={classes.toolbar} />
         {children}

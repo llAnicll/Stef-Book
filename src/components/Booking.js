@@ -7,14 +7,14 @@ import {
   Grid,
   Box,
   Typography,
-  Paper,
-  ButtonBase,
   Collapse,
   IconButton,
   CircularProgress,
   Zoom,
 } from '@material-ui/core';
 import SessionRequestButton from 'components/booking components/SessionRequestButton';
+import Event from 'components/booking components/Event';
+import CreateEventButton from 'components/booking components/CreateEventButton';
 
 const useStyles = makeStyles(theme => ({
   background: {
@@ -25,7 +25,6 @@ const useStyles = makeStyles(theme => ({
   container: {
     paddingTop: theme.spacing(9),
     paddingBottom: theme.spacing(6),
-    minHeight: '493px',
     transition: '0.75s',
   },
   containerFixed: {
@@ -38,24 +37,6 @@ const useStyles = makeStyles(theme => ({
   gridPreview: {
     minHeight: '138px',
   },
-  paper: {
-    backgroundColor: '#f9f9f9', // theme.palette.primary.light
-    transition: '0.5s',
-    transitionTimingFunction: 'ease-in-out',
-    '&:hover': {
-      backgroundColor: theme.palette.secondary.light,
-    },
-  },
-  buttonBase: {
-    width: '100%',
-    height: '100%',
-    boxSizing: 'border-box',
-    padding: theme.spacing(2),
-    displat: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   buttonContainer: {
     widht: '100%',
     display: 'flex',
@@ -67,35 +48,20 @@ const useStyles = makeStyles(theme => ({
     transition: '0.25s',
   },
   moreButtonOpen: {
+    transition: '0.5s',
     transform: 'rotate(180deg)',
   },
   centerItem: {
-    width: '100%',
     display: 'flex',
     justifyContent: 'center',
-    marginTop: theme.spacing(4),
-    marginBottom: theme.spacing(4),
-  },
-  itemWithDelete: {
-    width: '100%',
-    display: 'flex',
-  },
-  deleteIconButton: {
-    padding: theme.spacing(1),
-  },
-  itemTitle: {
-    justifySelf: 'flex-start',
-    flexGrow: 1,
   },
 }));
 
 export default function Booking(props) {
-  const { user, toggleDialog } = props;
   const classes = useStyles();
+  const { user, toggleDialog, admin, toggleCreateDialog } = props;
   const [events, setEvents] = useState([]);
   const [expanded, setExpanded] = useState(false);
-  const [fetched, setFetched] = useState(false);
-  const [mousOver, setMouseOver] = useState(null);
 
   // toggle more events view
   const toggleExpand = () => {
@@ -111,66 +77,57 @@ export default function Booking(props) {
     return tomorrow;
   };
 
-  // get the events
+  // filter events that are full
+  const filterAvailableEvents = eventsList => {
+    const newList = eventsList.filter(item => {
+      if (item.currentAttendees < item.maxAttendees) {
+        return item;
+      }
+    });
+    if (newList.length > 0) {
+      return newList;
+    } else {
+      return null;
+    }
+  };
+
+  // get events
   useEffect(() => {
     const nextDay = getMinDate();
-    const eventsRef = firebase.firestore().collection('events');
+    const db = firebase.firestore();
+    const eventsRef = db.collection('events');
     const queary = eventsRef.where('start', '>', new Date(nextDay));
     queary.get().then(res => {
-      if (res.docs.length > 0) {
-        const eventsList = res.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setEvents(eventsList);
-        setFetched(true);
-      } else {
-        setEvents(null);
-        setFetched(true);
-      }
+      const eventsList = res.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      const newList = filterAvailableEvents(eventsList);
+      setEvents(newList);
     });
   }, []);
 
-  useEffect(() => {
-    if (fetched) {
-      if (events !== null) {
-        const newList = events.filter(item => {
-          if (item.currentAttendees < item.maxAttendees) {
-            return item;
-          }
-        });
-        if (newList.length > 0) {
-          setEvents(newList);
-        } else {
-          setEvents(null);
-        }
-      }
-    }
-  }, [fetched]);
-
-  // get items that should be used per section
-  const getMapableItems = (start, stopCondition) => {
-    var newList = [];
-    if (events.length < stopCondition) {
-      // ensures that the stop condition will not add 'undefined' to an index
-      stopCondition = events.length;
-    }
-    if (stopCondition > 0 && events.length > 0) {
-      for (var i = start; i < stopCondition; i++) {
-        newList.push(events[i]);
-      }
+  const getDisplayItems = () => {
+    if (events.length > 0) {
+      return events.map(
+        (item, index) =>
+          index < 4 && (
+            <Zoom key={index} in={true} timeout={parseInt(`${index + 9}00`)}>
+              <Grid item xs={12} sm={12} md={6} lg={3}>
+                <Event item={item} onClick={toggleDialog} />
+              </Grid>
+            </Zoom>
+          )
+      );
     } else {
-      console.log('no items');
+      return (
+        <Zoom in={true} timeout={800}>
+          <Grid item>
+            <CircularProgress color='secondary' />
+          </Grid>
+        </Zoom>
+      );
     }
-    return newList;
-  };
-
-  const handleMouseEnter = index => {
-    setMouseOver(index);
-  };
-
-  const handleMouseLeave = () => {
-    setMouseOver(null);
   };
 
   // if no events
@@ -178,36 +135,36 @@ export default function Booking(props) {
     return (
       <Box className={classes.background}>
         <Container id='booking' className={classes.container}>
-          <Typography variant='h2' component='h2' align='center' gutterBottom>
-            Upcoming Events
-          </Typography>
-          <div className={classes.centerItem}>
-            <SessionRequestButton user={user} />
-          </div>
-          <Typography variant='h6' align='center'>
-            Looks like there are no upcoming events
-          </Typography>
-        </Container>
-      </Box>
-    );
-  }
+          <Grid
+            container
+            direction='row'
+            justify='center'
+            alignItems='center'
+            spacing={3}
+            className={classes.grid}
+          >
+            <Grid item xs={12} className={classes.centerItem}>
+              <Typography variant='h2' component='h2' align='center' gutterBottom>
+                Upcoming Events
+              </Typography>
+            </Grid>
 
-  // if still getting events
-  if (!events.length > 0) {
-    return (
-      <Box className={classes.background}>
-        <Container id='booking' className={classes.container}>
-          <Typography variant='h2' component='h2' align='center' gutterBottom>
-            Upcoming Events
-          </Typography>
+            <Grid item xs={admin ? 6 : 12} className={classes.centerItem}>
+              <SessionRequestButton user={user} />
+            </Grid>
 
-          <div className={classes.centerItem}>
-            <SessionRequestButton user={user} />
-          </div>
+            {admin && (
+              <Grid item xs={6} className={classes.centerItem}>
+                <CreateEventButton toggleCreateDialog={toggleCreateDialog} />
+              </Grid>
+            )}
 
-          <div className={classes.centerItem}>
-            <CircularProgress color='secondary' />
-          </div>
+            <Grid item xs={12} className={classes.centerItem}>
+              <Typography variant='h6' align='center'>
+                Looks like there are no upcoming events
+              </Typography>
+            </Grid>
+          </Grid>
         </Container>
       </Box>
     );
@@ -216,14 +173,6 @@ export default function Booking(props) {
   return (
     <Box className={classes.background}>
       <Container id='booking' className={classes.container}>
-        <Typography variant='h2' component='h2' align='center' gutterBottom>
-          Upcoming Events
-        </Typography>
-
-        <div className={classes.centerItem}>
-          <SessionRequestButton user={user} />
-        </div>
-
         <Grid
           container
           direction='row'
@@ -232,37 +181,21 @@ export default function Booking(props) {
           spacing={3}
           className={classes.grid}
         >
-          {getMapableItems(0, 4).map((item, index) => {
-            const startDate = item.start.toDate().toLocaleDateString();
-            const startTime = item.start.toDate().toLocaleTimeString();
-            const endTime = item.end.toDate().toLocaleTimeString();
+          <Grid item xs={12} className={classes.centerItem}>
+            <Typography variant='h2' component='h2' align='center' gutterBottom>
+              Upcoming Events
+            </Typography>
+          </Grid>
 
-            return (
-              <Zoom key={index} in={true} timeout={parseInt(`${index + 9}00`)}>
-                <Grid item xs={12} sm={12} md={6} lg={3}>
-                  <Paper elevation={mousOver === item.id ? 12 : 4} className={classes.paper}>
-                    <ButtonBase
-                      className={classes.buttonBase}
-                      onClick={() => toggleDialog(item)}
-                      onMouseEnter={() => handleMouseEnter(item.id)}
-                      onMouseLeave={handleMouseLeave}
-                    >
-                      <Typography variant='h6' algin='left' color='initial' gutterBottom>
-                        {item.title}
-                      </Typography>
-                      <Typography variant='body2'>{`Date: ${startDate}`}</Typography>
-                      <Typography variant='body2'>{`${startTime} - ${endTime}`}</Typography>
-                      <Typography variant='body2'>{`Location: ${item.location}`}</Typography>
-                    </ButtonBase>
-                  </Paper>
-                </Grid>
-              </Zoom>
-            );
-          })}
+          <Grid item xs={12} className={classes.centerItem}>
+            <SessionRequestButton user={user} />
+            {admin && <CreateEventButton toggleCreateDialog={toggleCreateDialog} />}
+          </Grid>
+
+          {getDisplayItems()}
         </Grid>
-
-        {events.length > 4 && (
-          <Collapse in={expanded} timeout='auto'>
+        <Collapse in={expanded} timeout='auto'>
+          {events.length > 4 && (
             <Grid
               container
               direction='row'
@@ -271,47 +204,26 @@ export default function Booking(props) {
               spacing={3}
               className={classes.grid}
             >
-              {getMapableItems(4, events.length).map((item, index) => {
-                const startDate = item.start.toDate().toLocaleDateString();
-                const startTime = item.start.toDate().toLocaleTimeString();
-                const endTime = item.end.toDate().toLocaleTimeString();
-
-                return (
-                  <Grid item key={index} xs={12} sm={12} md={6} lg={3}>
-                    <Paper elevation={mousOver === item.id ? 12 : 4} className={classes.paper}>
-                      <ButtonBase
-                        className={classes.buttonBase}
-                        onClick={() => toggleDialog(item)}
-                        onMouseEnter={() => handleMouseEnter(item.id)}
-                        onMouseLeave={handleMouseLeave}
-                      >
-                        <Typography variant='h6' gutterBottom>
-                          {item.title}
-                        </Typography>
-                        <Typography variant='body2'>{`Date: ${startDate}`}</Typography>
-                        <Typography variant='body2'>{`${startTime} - ${endTime}`}</Typography>
-                        <Typography variant='body2'>{`Location: ${item.location}`}</Typography>
-                      </ButtonBase>
-                    </Paper>
-                  </Grid>
-                );
-              })}
+              {events.map(
+                (item, index) =>
+                  index >= 4 && (
+                    <Grid item key={index} xs={12} sm={12} md={6} lg={3}>
+                      <Event item={item} onClick={toggleDialog} />
+                    </Grid>
+                  )
+              )}
             </Grid>
-          </Collapse>
-        )}
-
+          )}
+        </Collapse>
         {events.length > 4 && (
           <Zoom in={true} timeout={800}>
-            <Box className={classes.buttonContainer}>
-              <IconButton
-                onClick={toggleExpand}
-                className={
-                  expanded ? `${classes.moreButton} ${classes.moreButtonOpen}` : classes.moreButton
-                }
-              >
-                <ExpandMoreIcon />
+            <div className={classes.centerItem} style={{ width: '100%' }}>
+              <IconButton onClick={toggleExpand}>
+                <ExpandMoreIcon
+                  className={expanded ? classes.moreButtonOpen : classes.moreButton}
+                />
               </IconButton>
-            </Box>
+            </div>
           </Zoom>
         )}
       </Container>

@@ -1,163 +1,162 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@material-ui/core';
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
+  Button,
 } from '@material-ui/core';
 import firebase from 'fbConfig';
 
 export default function ConfirmDialog(props) {
   const { open, toggle, item, user, admin } = props;
-  const [loading, setLoading] = useState(false);
+  const [titleMessage, setTitleMessage] = useState('');
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [willDelete, setWillDelete] = useState(false);
 
-  const handleDelete = () => {
-    if (deleteConfirm) {
-      const eventRef = firebase.firestore().collection('events').doc(item.id);
-      eventRef.delete();
-      setDeleteConfirm(false);
-      setMessage('');
-      toggle();
-    } else {
-      setMessage('Are you sure you want to delete this item?');
-      setDeleteConfirm(true);
-    }
-  };
-
-  // end loading when we have the current user
+  // set the initial display text if their is a user
   useEffect(() => {
     if (user) {
-      setLoading(false);
       setMessage(
-        `To be entered in ${item.summary} event/clinic, please confirm ${user.email} is your email address. You will be contacted at this email address for any updates.`
+        `To be entered in this event, confirm: ${user.email} is your email address. You will be contacted at this email address for any updates`
       );
-    }
-  }, [user, item.summary]);
-
-  // make changes to the event
-  const editEvent = async () => {
-    var eventToUpdate = item;
-    // get item again to ensure it will no be over max capacity
-    const eventsRef = firebase.firestore().collection('events');
-    eventsRef
-      .doc(item.id)
-      .get()
-      .then(res => {
-        eventToUpdate = { id: res.id, ...res.data() };
-      });
-
-    if (eventToUpdate.currentAttendees >= eventToUpdate.maxAttendees) {
-      setMessage(
-        'Dang, looks like the event just filled up, keep an eye our for future events similar to this one'
-      );
-      setDone(true);
-      return;
-    }
-
-    // check if user is already attending
-    const found = eventToUpdate.attendees.find(attendee => {
-      if (attendee.toLowerCase() === user.email.toLowerCase()) return true;
-      return false;
-    });
-    if (found) {
-      setMessage(
-        `Looks like someone with the email ${user.email} is already part of this event. If this is not you please contact me immediately`
-      );
-      setDone(true);
-      return;
+      setTitleMessage('Confirm');
     } else {
-      // add new attendee
-      eventToUpdate.attendees.push(user.email);
-      eventToUpdate.currentAttendees += 1;
-      updateEvent(eventToUpdate);
+      setMessage('You need to be signed in to enter this event');
+      setTitleMessage('Sign in required');
     }
-  };
+  }, [user]);
 
-  const handleUserfinish = () => {
-    setDone(false);
+  // handle cencel press
+  const handleClose = () => {
     toggle();
   };
 
-  // update the event
-  const updateEvent = eventToUpdate => {
-    const eventRef = firebase.firestore().collection('events').doc(eventToUpdate.id);
-    eventRef
+  // handle confirm press
+  const handleConfirmButton = async () => {
+    // get the latest version of the event
+    setLoading(true);
+    const eventRef = firebase.firestore().collection('events').doc(item.id);
+    const event = await eventRef.get().then(res => res.data());
+    // check if the event is full
+    if (event.currentAttendees >= event.maxAttendees) {
+      setMessage(
+        'Looks like the event just filled up, keep an eye out for future events like this one'
+      );
+      setLoading(false);
+      setDone(true);
+      return;
+    }
+    // check if the user is part of the event
+    if (event.attendees.includes(user.email)) {
+      setMessage('Looks like you are already joined in this event');
+      setLoading(false);
+      setDone(true);
+      return;
+    }
+    // update event
+    event.attendees.push(user.email);
+    event.currentAttendees += 1;
+    // update the event
+    await eventRef
       .update({
-        attendees: eventToUpdate.attendees,
-        currentAttendees: eventToUpdate.currentAttendees,
+        attendees: event.attendees,
+        currentAttendees: event.currentAttendees,
       })
       .then(() => {
         setMessage(`${user.email} has been added to the event`);
-        setDone(true);
-      })
-      .catch(err => {
-        setMessage(
-          'oops, looks like something went wrong, please try again later. If you are having trouble joining an event please contact directly'
-        );
+        setLoading(false);
         setDone(true);
       });
+  };
+
+  const handleDelete = () => {
+    if (willDelete) {
+      setLoading(true);
+      const eventRef = firebase.firestore().collection('events').doc(item.id);
+      eventRef.delete();
+      setLoading(false);
+      setMessage('The event has been removed, refresh page to see changes');
+      setWillDelete(false);
+      setDone(true);
+    } else {
+      setMessage('Are you sure you want to delete this item?');
+      setWillDelete(true);
+    }
   };
 
   // sign in with google
   const authorize = async () => {
-    setLoading(true);
     var provider = new firebase.auth.GoogleAuthProvider();
-    firebase
-      .auth()
-      .signInWithPopup(provider)
-      .catch(err => {
-        setMessage(err.message);
-        console.log('There was an error: ', err);
-      });
+    firebase.auth().signInWithPopup(provider);
   };
 
-  if (!user) {
-    return (
-      <Dialog open={open}>
-        <DialogTitle style={{ cursor: 'move' }}>Authorize Google</DialogTitle>
+  const getDialogContent = () => {
+    if (!user) {
+      return (
         <DialogContent>
-          <DialogContentText>You need to login to be able to join clinics</DialogContentText>
+          <DialogContentText>{message}</DialogContentText>
         </DialogContent>
+      );
+    } else {
+      return (
+        <DialogContent>
+          <DialogContentText>{message}</DialogContentText>
+        </DialogContent>
+      );
+    }
+  };
+
+  const getDialogActions = () => {
+    if (!user) {
+      return (
         <DialogActions>
-          <Button autoFocus onClick={toggle} disabled={loading} color='secondary'>
+          <Button autoFocus onClick={handleClose} color='secondary'>
             Cancel
           </Button>
-          <Button onClick={authorize} disabled={loading} color='secondary'>
-            login
+          <Button onClick={authorize} color='secondary'>
+            Sign in with Google
           </Button>
         </DialogActions>
-      </Dialog>
-    );
-  }
+      );
+    } else {
+      return (
+        <DialogActions>
+          {admin && willDelete && (
+            <Button onClick={handleClose} disabled={loading}>
+              cancel
+            </Button>
+          )}
+          {admin && done === false && (
+            <Button onClick={handleDelete} disabled={loading}>
+              Delete
+            </Button>
+          )}
+          {willDelete === false && (
+            <>
+              <Button color='secondary' onClick={handleClose} disabled={loading}>
+                {done ? 'Close' : 'Cancel'}
+              </Button>
+              {!done && (
+                <Button color='secondary' onClick={handleConfirmButton} disabled={loading}>
+                  Confirm
+                </Button>
+              )}
+            </>
+          )}
+        </DialogActions>
+      );
+    }
+  };
 
   return (
     <Dialog open={open}>
-      <DialogTitle style={{ cursor: 'move' }}>Confirm</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          {message !== ''
-            ? message
-            : `To be entered in ${item.title} event/clinic, please confirm ${user.email} is your email address. You will be contacted at this email address for any updates.`}
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        {admin && <Button onClick={handleDelete}>{deleteConfirm ? 'yes' : 'Delete'}</Button>}
-        {!deleteConfirm && (
-          <>
-            <Button autoFocus onClick={toggle} color='secondary'>
-              Cancel
-            </Button>
-            <Button onClick={done ? handleUserfinish : editEvent} color='secondary'>
-              {done ? 'Close' : 'Confirm'}
-            </Button>
-          </>
-        )}
-      </DialogActions>
+      <DialogTitle style={{ cursor: 'move' }}>{titleMessage}</DialogTitle>
+      {getDialogContent()}
+      {getDialogActions()}
     </Dialog>
   );
 }

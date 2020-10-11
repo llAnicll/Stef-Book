@@ -8,8 +8,6 @@ import ConfirmDialog from 'components/ConfirmDialog';
 import firebase from 'fbConfig';
 import CreateNewEventDialog from 'components/NewEventDialog';
 
-// Linting and hosting
-
 function App() {
   const [user, setUser] = useState(null);
   const [admin, setAdmin] = useState(false);
@@ -46,9 +44,14 @@ function App() {
 
   return (
     <div>
-      <Nav user={user} admin={admin} toggleCreate={toggleCreateDialog}>
+      <Nav user={user}>
         <Header />
-        <Booking user={user} toggleDialog={toggleDialogState} />
+        <Booking
+          user={user}
+          toggleDialog={toggleDialogState}
+          admin={admin}
+          toggleCreateDialog={toggleCreateDialog}
+        />
         <About />
         <Contact />
       </Nav>

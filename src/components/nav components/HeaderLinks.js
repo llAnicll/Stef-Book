@@ -12,7 +12,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function HeaderLinks(props) {
-  const { links, user, admin, toggleCreate } = props;
+  const { links, user } = props;
   const classes = useStyles();
 
   const authorize = async e => {
@@ -24,11 +24,6 @@ export default function HeaderLinks(props) {
   const signOut = e => {
     e.preventDefault();
     firebase.auth().signOut();
-  };
-
-  const createClick = e => {
-    e.preventDefault();
-    toggleCreate();
   };
 
   return (
@@ -51,11 +46,6 @@ export default function HeaderLinks(props) {
                 {link.text}
               </Link>
             )
-          )}
-          {admin && (
-            <Link href='' color='inherit' onClick={createClick}>
-              Create Event
-            </Link>
           )}
         </Typography>
       </Zoom>
