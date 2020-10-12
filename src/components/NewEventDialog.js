@@ -15,7 +15,6 @@ export default function CreateNewEventDialog(props) {
   const confirmCreation = (data, e) => {
     e.preventDefault();
     delete data.end;
-    console.log('original: ', data);
     setInput(data);
     setMessage('Are you sure you want to create this event?');
   };
@@ -29,7 +28,6 @@ export default function CreateNewEventDialog(props) {
           var end = new Date(newData.start);
           end = end.setMinutes(end.getMinutes() + Number(newData.durration) * 60);
           newData['end'] = new Date(end);
-          console.log(end);
           break;
         case 'maxAttendees':
           newData[key] = parseInt(newData[key], 10);
@@ -50,7 +48,6 @@ export default function CreateNewEventDialog(props) {
   const createEvent = () => {
     setSubmiting(true);
     const parsed = parseData();
-    console.log('New: ', parsed);
     const eventsRef = firebase.firestore().collection('events');
     eventsRef.add(parsed).then(() => {
       setSubmiting(false);

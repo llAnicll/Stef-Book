@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { makeStyles } from '@material-ui/core';
 import {
   Dialog,
   DialogTitle,
@@ -6,11 +7,26 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  List,
+  ListItem,
+  ListItemText,
+  ListSubheader,
 } from '@material-ui/core';
 import firebase from 'fbConfig';
 
+const useStyles = makeStyles({
+  listSubHeader: {
+    display: 'flex',
+    justifyContent: 'flex-start',
+  },
+  attendingHeader: {
+    flexGrow: 1,
+  },
+});
+
 export default function ConfirmDialog(props) {
   const { open, toggle, item, user, admin } = props;
+  const classes = useStyles();
   const [titleMessage, setTitleMessage] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -94,6 +110,25 @@ export default function ConfirmDialog(props) {
     firebase.auth().signInWithPopup(provider);
   };
 
+  const getAdminView = () => {
+    const max = item.maxAttendees;
+    const current = item.currentAttendees;
+    return (
+      <List>
+        <div className={classes.listSubHeader}>
+          <ListSubheader className={classes.attendingHeader}>Attending:</ListSubheader>
+          <ListSubheader>{`${current} / ${max}`}</ListSubheader>
+        </div>
+
+        {item.attendees.map((attendee, index) => (
+          <ListItem key={index}>
+            <ListItemText primary={attendee} />
+          </ListItem>
+        ))}
+      </List>
+    );
+  };
+
   const getDialogContent = () => {
     if (!user) {
       return (
@@ -105,6 +140,7 @@ export default function ConfirmDialog(props) {
       return (
         <DialogContent>
           <DialogContentText>{message}</DialogContentText>
+          {admin && getAdminView()}
         </DialogContent>
       );
     }

@@ -33,7 +33,8 @@ const useStyles = makeStyles(theme => ({
       width: '90%',
     },
     [theme.breakpoints.down('sm')]: {
-      display: 'none',
+      width: '70%',
+      marginBottom: theme.spacing(1),
     },
   },
   item: {
